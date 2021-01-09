@@ -32,6 +32,8 @@ namespace ThAmCo.Accounts
                 Configuration.GetConnectionString("AccountConnection")
             ));
 
+            services.AddSwaggerGen();
+
             services.AddIdentity<AppUser, AppRole>()
                 .AddEntityFrameworkStores<AccountDbContext>()
                 .AddDefaultTokenProviders();
@@ -97,6 +99,13 @@ namespace ThAmCo.Accounts
                 app.UseExceptionHandler("/Home/Error");
                 app.UseHsts();
             }
+
+            app.UseSwagger();
+
+            app.UseSwaggerUI(c =>
+            {
+                c.SwaggerEndpoint("/swagger/v1/swagger.json", "ThAmCo Account API");
+            });
 
             app.UseHttpsRedirection();
             app.UseStaticFiles();
