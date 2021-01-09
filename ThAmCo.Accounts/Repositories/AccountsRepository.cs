@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using AutoMapper;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using ThAmCo.Accounts.Data;
@@ -36,21 +37,25 @@ namespace ThAmCo.Accounts.Repositories
             return new OkResponse<List<Account>>(accountsList);
         }
 
-        private async Task<Account> AddRolesToAccount(AppUser account)
-        {
-            var mappedAccount = _mapper.Map<Account>(account);
-            mappedAccount.Roles = await _userManager.GetRolesAsync(account);
-            return mappedAccount;
-        }
-
         public async Task<BaseResponse<Account>> GetUserAccountById(Guid accountId)
         {
-            throw new NotImplementedException();
+            var accountEntity= await _context.Users.FindAsync(accountId.ToString());
+            if (accountEntity == null)
+                return new ErrorResponse<Account>("No account could be found with the specified ID.", StatusCodes.Status404NotFound);
+
+            var account = await AddRolesToAccount(accountEntity);
+            return new OkResponse<Account>(account);
         }
 
         public async Task<BaseResponse<Account>> GetUserAccountByUsername(string username)
         {
-            throw new NotImplementedException();
+            var accountEntity = await _context.Users.FirstOrDefaultAsync(x => x.UserName.Equals(username, StringComparison.CurrentCultureIgnoreCase)) ??
+                                            await _context.Users.FirstOrDefaultAsync(x => x.Email.Equals(username, StringComparison.CurrentCultureIgnoreCase)); //If user cannot be found from username, check if they entered an email instead.
+            if (accountEntity == null)
+                return new ErrorResponse<Account>("No account could be found with the specified username or email.", StatusCodes.Status404NotFound);
+
+            var account = await AddRolesToAccount(accountEntity);
+            return new OkResponse<Account>(account);
         }
 
         public async Task<BaseResponse<AppUser>> AddAccountRole(Guid accountId, AccountRoleEnum role)
@@ -61,6 +66,13 @@ namespace ThAmCo.Accounts.Repositories
         public async Task<BaseResponse<AppUser>> RemoveAccountRole(Guid accountId, AccountRoleEnum role)
         {
             throw new NotImplementedException();
+        }
+
+        private async Task<Account> AddRolesToAccount(AppUser account)
+        {
+            var mappedAccount = _mapper.Map<Account>(account);
+            mappedAccount.Roles = await _userManager.GetRolesAsync(account);
+            return mappedAccount;
         }
     }
 }

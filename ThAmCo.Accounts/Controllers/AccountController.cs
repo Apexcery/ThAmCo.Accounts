@@ -33,5 +33,29 @@ namespace ThAmCo.Accounts.Controllers
 
             return Ok(accounts.Value);
         }
+
+        [HttpGet("id/{id}")]
+        public async Task<ActionResult> GetAccountById(string id)
+        {
+            var validId = Guid.TryParse(id, out var accountId);
+            if (!validId)
+                return BadRequest("You have entered an invalid account ID.");
+
+            var account = await _accountsRepository.GetUserAccountById(accountId);
+            if (account?.Value == null)
+                return NotFound(new {AccountId = id});
+
+            return Ok(account.Value);
+        }
+
+        [HttpGet("username/{username}")]
+        public async Task<ActionResult> GetAccountByUsername(string username)
+        {
+            var account = await _accountsRepository.GetUserAccountByUsername(username);
+            if (account?.Value == null)
+                return NotFound(new {AccountUsername = username});
+
+            return Ok(account.Value);
+        }
     }
 }
