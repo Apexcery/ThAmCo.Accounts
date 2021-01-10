@@ -43,32 +43,32 @@ namespace ThAmCo.Accounts.Repositories
             return new OkResponse<List<Account>>(StoredAccounts.Take(limit).ToList());
         }
 
-        public async Task<BaseResponse<AppUser>> AddAccountRole(Guid accountId, AccountRoleEnum role)
+        public async Task<BaseResponse<Account>> AddAccountRole(Guid accountId, AccountRoleEnum role)
         {
             if (StoredAccounts.All(x => x.Id != accountId.ToString()))
-                return new ErrorResponse<AppUser>("No account could be found with the specified ID.") { StatusCode = StatusCodes.Status404NotFound };
+                return new ErrorResponse<Account>("No account could be found with the specified ID.") { StatusCode = StatusCodes.Status404NotFound };
 
             var account = StoredAccounts.Single(x => x.Id == accountId.ToString());
 
             if (account.Roles.Any(currentRole => currentRole.Equals(role.ToString(), StringComparison.CurrentCultureIgnoreCase)))
-                return new ErrorResponse<AppUser>("The specified account already has the specified role.") { StatusCode = StatusCodes.Status409Conflict };
+                return new ErrorResponse<Account>("The specified account already has the specified role.") { StatusCode = StatusCodes.Status409Conflict };
 
             account.Roles.Add(role.ToString());
-            return new OkResponse<AppUser>(_mapper.Map<AppUser>(account));
+            return new OkResponse<Account>(account);
         }
 
-        public async Task<BaseResponse<AppUser>> RemoveAccountRole(Guid accountId, AccountRoleEnum role)
+        public async Task<BaseResponse<Account>> RemoveAccountRole(Guid accountId, AccountRoleEnum role)
         {
             if (StoredAccounts.All(x => x.Id != accountId.ToString()))
-                return new ErrorResponse<AppUser>("No account could be found with the specified ID.") { StatusCode = StatusCodes.Status404NotFound };
+                return new ErrorResponse<Account>("No account could be found with the specified ID.") { StatusCode = StatusCodes.Status404NotFound };
 
             var account = StoredAccounts.Single(x => x.Id == accountId.ToString());
 
             if (!account.Roles.Any(currentRole => currentRole.Equals(role.ToString(), StringComparison.CurrentCultureIgnoreCase)))
-                return new ErrorResponse<AppUser>("The specified account does not have the specified role.") { StatusCode = StatusCodes.Status404NotFound };
+                return new ErrorResponse<Account>("The specified account does not have the specified role.") { StatusCode = StatusCodes.Status404NotFound };
 
             account.Roles.Remove(role.ToString());
-            return new OkResponse<AppUser>(_mapper.Map<AppUser>(account));
+            return new OkResponse<Account>(account);
         }
     }
 }

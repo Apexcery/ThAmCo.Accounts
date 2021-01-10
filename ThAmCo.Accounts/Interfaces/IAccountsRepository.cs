@@ -15,7 +15,7 @@ namespace ThAmCo.Accounts.Interfaces
         public Task<BaseResponse<Account>> GetUserAccountById(Guid accountId);
         public Task<BaseResponse<Account>> GetUserAccountByUsername(string username);
         public Task<BaseResponse<List<Account>>> GetUserAccounts(int limit);
-        public Task<BaseResponse<AppUser>> AddAccountRole(Guid accountId, AccountRoleEnum role);
-        public Task<BaseResponse<AppUser>> RemoveAccountRole(Guid accountId, AccountRoleEnum role);
+        public Task<BaseResponse<Account>> AddAccountRole(Guid accountId, AccountRoleEnum role);
+        public Task<BaseResponse<Account>> RemoveAccountRole(Guid accountId, AccountRoleEnum role);
     }
 }

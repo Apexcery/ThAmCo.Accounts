@@ -3,9 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using ThAmCo.Accounts.Data.Account;
+using ThAmCo.Accounts.Enums;
 using ThAmCo.Accounts.Interfaces;
 
 namespace ThAmCo.Accounts.Controllers
@@ -56,6 +58,47 @@ namespace ThAmCo.Accounts.Controllers
                 return NotFound(new {AccountUsername = username});
 
             return Ok(account.Value);
+        }
+
+        [HttpPut("addRole/{id}/{role}")]
+        public async Task<ActionResult> AddRoleToAccount(string id, string role)
+        {
+            var isIdValid = Guid.TryParse(id, out var accountId);
+            var isRoleValid = Enum.TryParse<AccountRoleEnum>(role, true, out var roleToAdd);
+
+            if (!isIdValid || !isRoleValid)
+                return BadRequest("The id or role that you entered is not valid.");
+
+            var response = await _accountsRepository.AddAccountRole(accountId, roleToAdd);
+
+            if (response.IsError || response.Value == null)
+                if (response.StatusCode == StatusCodes.Status404NotFound)
+                    return NotFound(response.Message);
+                else
+                    return BadRequest(response.Message);
+
+            return Ok(response.Value);
+        }
+
+        [HttpPut]
+        [Route("removeRole/{id}/{role}")]
+        public async Task<ActionResult> RemoveAccountRole(string id, string role)
+        {
+            var isIdValid = Guid.TryParse(id, out var accountId);
+            var isRoleValid = Enum.TryParse<AccountRoleEnum>(role, true, out var roleToRemove);
+
+            if (!isIdValid || !isRoleValid)
+                return BadRequest("The id or role that you entered is not valid.");
+
+            var response = await _accountsRepository.RemoveAccountRole(accountId, roleToRemove);
+
+            if (response.IsError || response.Value == null)
+                if (response.StatusCode == StatusCodes.Status404NotFound)
+                    return NotFound(response.Message);
+                else
+                    return BadRequest(response.Message);
+
+            return Ok(response.Value);
         }
     }
 }

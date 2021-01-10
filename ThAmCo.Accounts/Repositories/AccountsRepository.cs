@@ -1,13 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using AutoMapper;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using ThAmCo.Accounts.Data;
 using ThAmCo.Accounts.Data.Account;
 using ThAmCo.Accounts.Enums;
 using ThAmCo.Accounts.Interfaces;
@@ -32,7 +30,7 @@ namespace ThAmCo.Accounts.Repositories
         public async Task<BaseResponse<List<Account>>> GetUserAccounts(int limit)
         {
             var accounts = await _context.Users.OrderBy(x => x.UserName).Take(limit).ToListAsync();
-            var accountsList = accounts.Select(account => AddRolesToAccount(account).Result).ToList();
+            var accountsList = accounts.Select(account => AddRolesToAccountObject(account).Result).ToList();
 
             return new OkResponse<List<Account>>(accountsList);
         }
@@ -43,7 +41,7 @@ namespace ThAmCo.Accounts.Repositories
             if (accountEntity == null)
                 return new ErrorResponse<Account>("No account could be found with the specified ID.", StatusCodes.Status404NotFound);
 
-            var account = await AddRolesToAccount(accountEntity);
+            var account = await AddRolesToAccountObject(accountEntity);
             return new OkResponse<Account>(account);
         }
 
@@ -54,21 +52,47 @@ namespace ThAmCo.Accounts.Repositories
             if (accountEntity == null)
                 return new ErrorResponse<Account>("No account could be found with the specified username or email.", StatusCodes.Status404NotFound);
 
-            var account = await AddRolesToAccount(accountEntity);
+            var account = await AddRolesToAccountObject(accountEntity);
             return new OkResponse<Account>(account);
         }
 
-        public async Task<BaseResponse<AppUser>> AddAccountRole(Guid accountId, AccountRoleEnum role)
+        public async Task<BaseResponse<Account>> AddAccountRole(Guid accountId, AccountRoleEnum role)
         {
-            throw new NotImplementedException();
+            var account = await _context.Users.FindAsync(accountId.ToString());
+            if (account == null)
+                return new ErrorResponse<Account>("No account could be found with the specified ID", StatusCodes.Status404NotFound);
+
+            var currentRoles = await _userManager.GetRolesAsync(account);
+
+            if (currentRoles.Any(currentRole => currentRole.Equals(role.ToString(), StringComparison.CurrentCultureIgnoreCase)))
+                return new ErrorResponse<Account>("The specified account already has the specified role.") { StatusCode = StatusCodes.Status409Conflict };
+
+            await _userManager.AddToRoleAsync(account, role.ToString());
+
+            var mappedAccount = await AddRolesToAccountObject(account);
+
+            return new OkResponse<Account>(mappedAccount);
         }
 
-        public async Task<BaseResponse<AppUser>> RemoveAccountRole(Guid accountId, AccountRoleEnum role)
+        public async Task<BaseResponse<Account>> RemoveAccountRole(Guid accountId, AccountRoleEnum role)
         {
-            throw new NotImplementedException();
+            var account = await _context.Users.FindAsync(accountId.ToString());
+            if (account == null)
+                return new ErrorResponse<Account>("No account could be found with the specified ID.") { StatusCode = StatusCodes.Status404NotFound };
+
+            var currentRoles = await _userManager.GetRolesAsync(account);
+
+            if (!currentRoles.Any(currentRole => currentRole.Equals(role.ToString(), StringComparison.CurrentCultureIgnoreCase)))
+                return new ErrorResponse<Account>("The specified account does not have the specified role.") { StatusCode = StatusCodes.Status404NotFound };
+
+            await _userManager.RemoveFromRoleAsync(account, role.ToString());
+
+            var mappedAccount = await AddRolesToAccountObject(account);
+
+            return new OkResponse<Account>(mappedAccount);
         }
 
-        private async Task<Account> AddRolesToAccount(AppUser account)
+        private async Task<Account> AddRolesToAccountObject(AppUser account)
         {
             var mappedAccount = _mapper.Map<Account>(account);
             mappedAccount.Roles = await _userManager.GetRolesAsync(account);
