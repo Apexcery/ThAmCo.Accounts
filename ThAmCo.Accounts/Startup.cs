@@ -66,9 +66,9 @@ namespace ThAmCo.Accounts
             JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear();
 
             services.AddAuthentication()
-                .AddJwtBearer("thamco_account_api", options =>
+                .AddJwtBearer("thamco_api", options =>
                 {
-                    options.Audience = "thamco_account_api";
+                    options.Audience = "thamco_api";
                     options.Authority = "https://localhost:44326/";
                     options.TokenValidationParameters = new TokenValidationParameters
                     {

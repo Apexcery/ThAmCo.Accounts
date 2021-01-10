@@ -1,18 +1,22 @@
-﻿using System.Linq;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Net.Http;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using ThAmCo.Accounts.Data.Account;
 using ThAmCo.Accounts.Models;
 using ThAmCo.Accounts.Models.Auth;
 
-namespace ThAmCo.Accounts.Controllers
+namespace ThAmCo.Accounts.Controllers.API
 {
     [ApiController]
     [Authorize(AuthenticationSchemes = "thamco_api")]
-    [Route("[controller]")]
+    [Route("api/[controller]")]
     public class AuthController : ControllerBase
     {
         private readonly UserManager<AppUser> _userManager;
@@ -20,6 +24,49 @@ namespace ThAmCo.Accounts.Controllers
         public AuthController(UserManager<AppUser> userManager)
         {
             _userManager = userManager;
+        }
+
+        [AllowAnonymous]
+        [HttpPost("login")]
+        public async Task<IActionResult> LoginUser([FromForm] UserLoginDto loginInfo)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest();
+
+            var baseUrl = $"{HttpContext.Request.Scheme}://{HttpContext.Request.Host.Value}";
+            var tokenUrl = "/connect/token";
+
+            var client = new HttpClient
+            {
+                BaseAddress = new Uri(baseUrl)
+            };
+
+            var data = new List<KeyValuePair<string, string>>
+            {
+                new KeyValuePair<string, string>("grant_type", "password"),
+                new KeyValuePair<string, string>("client_id", "thamcoApiClient"),
+                new KeyValuePair<string, string>("scope", "thamco_api openid profile roles"),
+                new KeyValuePair<string, string>("response_type", "token"),
+
+                new KeyValuePair<string, string>("username", loginInfo.Username),
+                new KeyValuePair<string, string>("password", loginInfo.Password)
+            };
+
+            using var content = new FormUrlEncodedContent(data);
+            content.Headers.Clear();
+            content.Headers.Add("Content-Type", "application/x-www-form-urlencoded");
+
+            var response = await client.PostAsync(tokenUrl, content);
+
+            if (!response.IsSuccessStatusCode)
+                return RedirectToAction("Index", "Auth");
+
+            var loginResponse = await response.Content.ReadAsAsync<AuthLoginResponse>();
+
+            var cookieOptions = new CookieOptions {Expires = DateTime.Now.AddSeconds(loginResponse.ExpiresInSeconds)};
+            Response.Cookies.Append("access_token", loginResponse.AccessToken, cookieOptions);
+
+            return RedirectToAction("Index", "Home");
         }
 
         [AllowAnonymous]

@@ -1,0 +1,47 @@
+﻿@using ThAmCo.Accounts.Models.Auth
+@model ThAmCo.Accounts.Models.Auth.AuthDto;
+@{
+    ViewData["Title"] = "Login / Register";
+}
+
+<div class="text-center">
+    <h1 class="display-4">Login / Register</h1>
+    
+    <div class="card text-center mt-5">
+        <div class="card-header">
+            <ul class="nav nav-tabs card-header-tabs nav-fill">
+                <li class="nav-item">
+                    <a class="nav-link active" id="login-tab" data-toggle="tab" href="#login" role="tab" aria-controls="login" aria-selected="True">Login</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" id="register-tab" data-toggle="tab" href="#register" role="tab" aria-controls="register" aria-selected="True">Register</a>
+                </li>
+            </ul>
+        </div>
+        <div class="card-body">
+            <div class="tab-content pt-3" id="authTabContent">
+                <div class="tab-pane fade show active" id="login" role="tabpanel" aria-labelledby="login-tab">
+                    <h3 style="text-decoration: underline">Login</h3>
+                    
+
+                    <form class="w-50 mt-3" style="margin: 0 auto" asp-action="LoginUser">
+                        <div class="form-group">
+                            <label for="loginUsernameInput" class="float-left">Username</label>
+                            <input type="text" class="form-control" id="loginUsernameInput" name="username" placeholder="Username"/>
+                        </div>
+                        <div class="form-group">
+                            <label for="loginPasswordInput" class="float-left">Password</label>
+                            <input type="password" class="form-control" id="loginPasswordInput" name="password" placeholder="Password"/>
+                        </div>
+                        <div class="form-group">
+                            <button type="submit" class="form-control btn btn-primary">Login</button>
+                        </div>
+                    </form>
+                </div>
+                <div class="tab-pane fade" id="register" role="tabpanel" aria-labelledby="register-tab">
+                    <h3 style="text-decoration: underline">Register</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

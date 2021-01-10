@@ -1,19 +1,14 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using ThAmCo.Accounts.Data.Account;
 using ThAmCo.Accounts.Enums;
 using ThAmCo.Accounts.Interfaces;
 
-namespace ThAmCo.Accounts.Controllers
+namespace ThAmCo.Accounts.Controllers.API
 {
     [ApiController]
-    [Route("[controller]")]
+    [Route("api/[controller]")]
     public class AccountController : ControllerBase
     {
         private readonly IAccountsRepository _accountsRepository;
