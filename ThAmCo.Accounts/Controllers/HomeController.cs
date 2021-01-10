@@ -22,11 +22,12 @@ namespace ThAmCo.Accounts.Controllers
 
         public IActionResult Index()
         {
-            return View();
-        }
+            var isCookieStored = Request.Cookies.TryGetValue("access_token", out _);
+            if (!isCookieStored)
+            {
+                return RedirectToAction("Index", "Auth");
+            }
 
-        public IActionResult Privacy()
-        {
             return View();
         }
 

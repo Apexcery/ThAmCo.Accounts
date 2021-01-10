@@ -19,7 +19,5 @@ namespace ThAmCo.Accounts.Models.Auth
         public string Forename { get; set; }
         [Required]
         public string Surname { get; set; }
-        [Required]
-        public IList<string> Roles { get; set; }
     }
 }

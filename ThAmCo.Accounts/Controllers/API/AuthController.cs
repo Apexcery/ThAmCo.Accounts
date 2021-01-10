@@ -33,45 +33,12 @@ namespace ThAmCo.Accounts.Controllers.API
             if (!ModelState.IsValid)
                 return BadRequest();
 
-            var baseUrl = $"{HttpContext.Request.Scheme}://{HttpContext.Request.Host.Value}";
-            var tokenUrl = "/connect/token";
-
-            var client = new HttpClient
-            {
-                BaseAddress = new Uri(baseUrl)
-            };
-
-            var data = new List<KeyValuePair<string, string>>
-            {
-                new KeyValuePair<string, string>("grant_type", "password"),
-                new KeyValuePair<string, string>("client_id", "thamcoApiClient"),
-                new KeyValuePair<string, string>("scope", "thamco_api openid profile roles"),
-                new KeyValuePair<string, string>("response_type", "token"),
-
-                new KeyValuePair<string, string>("username", loginInfo.Username),
-                new KeyValuePair<string, string>("password", loginInfo.Password)
-            };
-
-            using var content = new FormUrlEncodedContent(data);
-            content.Headers.Clear();
-            content.Headers.Add("Content-Type", "application/x-www-form-urlencoded");
-
-            var response = await client.PostAsync(tokenUrl, content);
-
-            if (!response.IsSuccessStatusCode)
-                return RedirectToAction("Index", "Auth");
-
-            var loginResponse = await response.Content.ReadAsAsync<AuthLoginResponse>();
-
-            var cookieOptions = new CookieOptions {Expires = DateTime.Now.AddSeconds(loginResponse.ExpiresInSeconds)};
-            Response.Cookies.Append("access_token", loginResponse.AccessToken, cookieOptions);
-
-            return RedirectToAction("Index", "Home");
+            return await LoginAndStoreCookie(loginInfo.Username, loginInfo.Password);
         }
 
         [AllowAnonymous]
         [HttpPost("register")]
-        public async Task<IActionResult> RegisterNewUser([FromBody] UserRegisterDto newUser)
+        public async Task<IActionResult> RegisterNewUser([FromForm] UserRegisterDto newUser)
         {
             if (newUser == null)
                 return BadRequest();
@@ -93,16 +60,45 @@ namespace ThAmCo.Accounts.Controllers.API
 
             var roles = await _userManager.GetRolesAsync(user);
 
-            var dto = new UserResponseDto
+            return await LoginAndStoreCookie(newUser.Username, newUser.Password);
+        }
+
+        private async Task<IActionResult> LoginAndStoreCookie(string username, string password)
+        {
+            var baseUrl = $"{HttpContext.Request.Scheme}://{HttpContext.Request.Host.Value}";
+            var tokenUrl = "/connect/token";
+
+            var client = new HttpClient
             {
-                Id = user.Id,
-                Username = user.UserName,
-                Email = user.Email,
-                Fullname = user.Fullname,
-                Roles = roles
+                BaseAddress = new Uri(baseUrl)
             };
 
-            return Ok(dto);
+            var data = new List<KeyValuePair<string, string>>
+            {
+                new KeyValuePair<string, string>("grant_type", "password"),
+                new KeyValuePair<string, string>("client_id", "thamcoApiClient"),
+                new KeyValuePair<string, string>("scope", "thamco_api openid profile roles"),
+                new KeyValuePair<string, string>("response_type", "token"),
+
+                new KeyValuePair<string, string>("username", username),
+                new KeyValuePair<string, string>("password", password)
+            };
+
+            using var content = new FormUrlEncodedContent(data);
+            content.Headers.Clear();
+            content.Headers.Add("Content-Type", "application/x-www-form-urlencoded");
+
+            var response = await client.PostAsync(tokenUrl, content);
+
+            if (!response.IsSuccessStatusCode)
+                return RedirectToAction("Index", "Auth");
+
+            var loginResponse = await response.Content.ReadAsAsync<AuthLoginResponse>();
+
+            var cookieOptions = new CookieOptions { Expires = DateTime.Now.AddSeconds(loginResponse.ExpiresInSeconds) };
+            Response.Cookies.Append("access_token", loginResponse.AccessToken, cookieOptions);
+
+            return RedirectToAction("Index", "Home");
         }
 
         [HttpGet("claims")]

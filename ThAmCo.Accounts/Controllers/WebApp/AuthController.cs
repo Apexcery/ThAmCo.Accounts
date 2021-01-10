@@ -1,10 +1,4 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using Microsoft.AspNetCore.Mvc;
 
 namespace ThAmCo.Accounts.Controllers.WebApp
 {
@@ -13,6 +7,12 @@ namespace ThAmCo.Accounts.Controllers.WebApp
         // GET: Auth
         public ActionResult Index()
         {
+            var isCookieStored = Request.Cookies.TryGetValue("access_token", out _);
+            if (isCookieStored)
+            {
+                return RedirectToAction("Index", "Home");
+            }
+
             return View();
         }
     }
