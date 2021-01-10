@@ -80,8 +80,7 @@ namespace ThAmCo.Accounts.Controllers
             return Ok(response.Value);
         }
 
-        [HttpPut]
-        [Route("removeRole/{id}/{role}")]
+        [HttpPut("removeRole/{id}/{role}")]
         public async Task<ActionResult> RemoveAccountRole(string id, string role)
         {
             var isIdValid = Guid.TryParse(id, out var accountId);
