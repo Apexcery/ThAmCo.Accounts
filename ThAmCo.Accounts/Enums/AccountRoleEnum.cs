@@ -10,6 +10,6 @@ namespace ThAmCo.Accounts.Enums
     {
         Customer,
         Staff,
-        Management
+        Admin
     }
 }

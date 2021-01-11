@@ -11,6 +11,7 @@ using Microsoft.Extensions.Hosting;
 using ThAmCo.Accounts.Interfaces;
 using ThAmCo.Accounts.Mapper;
 using ThAmCo.Accounts.Repositories;
+using ThAmCo.Accounts.Services;
 
 namespace ThAmCo.Accounts.Extensions
 {
@@ -19,6 +20,8 @@ namespace ThAmCo.Accounts.Extensions
         public static IServiceCollection RegisterDependencies(this IServiceCollection services, IWebHostEnvironment env, IConfiguration config)
         {
             services.RegisterAccounts(env);
+
+            services.RegisterProfiles(env, config);
 
             services.RegisterMapper();
 
@@ -31,6 +34,19 @@ namespace ThAmCo.Accounts.Extensions
                 services.AddSingleton<IAccountsRepository, MockAccountsRepository>();
             else
                 services.AddScoped<IAccountsRepository, AccountsRepository>();
+
+            return services;
+        }
+
+        private static IServiceCollection RegisterProfiles(this IServiceCollection services, IWebHostEnvironment env, IConfiguration config)
+        {
+            if (env.IsDevelopment())
+                services.AddSingleton<IProfileService, MockProfileService>();
+            else
+                services.AddHttpClient<IProfileService, ProfileService>(options =>
+                {
+                    options.BaseAddress = new Uri(config["AppSettings:Endpoints:ProfilesEndpoint"]);
+                });
 
             return services;
         }

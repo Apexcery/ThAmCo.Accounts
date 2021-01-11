@@ -9,8 +9,10 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using ThAmCo.Accounts.Data.Account;
+using ThAmCo.Accounts.Interfaces;
 using ThAmCo.Accounts.Models;
 using ThAmCo.Accounts.Models.Auth;
+using ThAmCo.Accounts.Models.Profile;
 
 namespace ThAmCo.Accounts.Controllers.API
 {
@@ -20,10 +22,12 @@ namespace ThAmCo.Accounts.Controllers.API
     public class AuthController : ControllerBase
     {
         private readonly UserManager<AppUser> _userManager;
+        private readonly IProfileService _profileService;
 
-        public AuthController(UserManager<AppUser> userManager)
+        public AuthController(UserManager<AppUser> userManager, IProfileService profileService)
         {
             _userManager = userManager;
+            _profileService = profileService;
         }
 
         [AllowAnonymous]
@@ -59,6 +63,15 @@ namespace ThAmCo.Accounts.Controllers.API
             await _userManager.AddToRoleAsync(user, "Customer"); //Add user to the "Customer" role by default as it has the lowest permissions.
 
             var roles = await _userManager.GetRolesAsync(user);
+
+            await _profileService.AddProfile(new ProfileDto //Create a profile in the profile micro-service that corresponds with this user.
+            {
+                Id = Guid.Parse(user.Id),
+                Username = user.UserName,
+                Email = user.Email,
+                Forename = user.Forename,
+                Surname = user.Surname
+            });
 
             return await LoginAndStoreCookie(newUser.Username, newUser.Password);
         }
