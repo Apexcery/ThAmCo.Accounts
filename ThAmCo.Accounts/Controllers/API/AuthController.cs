@@ -108,7 +108,7 @@ namespace ThAmCo.Accounts.Controllers.API
 
             var loginResponse = await response.Content.ReadAsAsync<AuthLoginResponse>();
 
-            var cookieOptions = new CookieOptions { Expires = DateTime.Now.AddSeconds(loginResponse.ExpiresInSeconds), Domain = $"{HttpContext.Request.Scheme}://{HttpContext.Request.Host.Value}" };
+            var cookieOptions = new CookieOptions { Expires = DateTime.Now.AddSeconds(loginResponse.ExpiresInSeconds) };
             Response.Cookies.Append("access_token", loginResponse.AccessToken, cookieOptions);
 
             return RedirectToAction("Index", "Home");
