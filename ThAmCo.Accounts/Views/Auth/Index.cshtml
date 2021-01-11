@@ -21,7 +21,7 @@
                 <div class="tab-pane fade show active" id="login" role="tabpanel" aria-labelledby="login-tab">
                     <h3 style="text-decoration: underline">Login</h3>
 
-                    <form class="w-50 mt-3" style="margin: 0 auto" action="https://thamco-accounts.azurewebsites.net/api/Auth/login" method="post">
+                    <form class="w-50 mt-3" style="margin: 0 auto" asp-action="LoginUser">
                         <div class="form-group">
                             <label for="loginUsernameInput" class="float-left">Username</label>
                             <input type="text" class="form-control" id="loginUsernameInput" name="username" />
@@ -39,7 +39,7 @@
                 <div class="tab-pane fade" id="register" role="tabpanel" aria-labelledby="register-tab">
                     <h3 style="text-decoration: underline">Register</h3>
 
-                    <form class="w-50 mt-3" style="margin: 0 auto" action="https://thamco-accounts.azurewebsites.net/api/Auth/register" method="post" oninput='PasswordConfirm.setCustomValidity(PasswordConfirm.value != Password.value ? "Passwords do not match." : "")'>
+                    <form class="w-50 mt-3" style="margin: 0 auto" asp-action="RegisterNewUser" oninput='PasswordConfirm.setCustomValidity(PasswordConfirm.value != Password.value ? "Passwords do not match." : "")'>
                         <div class="form-group">
                             <label for="registerUsernameInput" class="float-left">Username</label>
                             <input type="text" class="form-control" id="registerUsernameInput" name="Username" />
