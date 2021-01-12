@@ -7,8 +7,11 @@ using System;
 using System.IdentityModel.Tokens.Jwt;
 using IdentityServer4.Services;
 using IdentityServer4.Validation;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Logging;
+using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using Microsoft.IdentityModel.Tokens;
 using ThAmCo.Accounts.Data.Account;
 using ThAmCo.Accounts.Extensions;
@@ -28,6 +31,7 @@ namespace ThAmCo.Accounts
 
         public void ConfigureServices(IServiceCollection services)
         {
+            IdentityModelEventSource.ShowPII = true;
             services.AddDbContext<AccountDbContext>(options => options.UseMySql(
                 Configuration.GetConnectionString("AccountConnection")
             ));
@@ -65,15 +69,18 @@ namespace ThAmCo.Accounts
 
             JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear();
 
-            services.AddAuthentication()
-                .AddJwtBearer("thamco_api", options =>
+            services.AddAuthentication("Bearer")
+                .AddJwtBearer("Bearer", options =>
                 {
                     options.Audience = "thamco_api";
-                    options.Authority = "https://localhost:44326/";
+                    options.Authority = "zenithal.co.uk";
                     options.TokenValidationParameters = new TokenValidationParameters
                     {
-                        ValidateAudience = false
+                        ValidateAudience = false,
+                        ValidateIssuer = false
                     };
+                    options.Configuration = new OpenIdConnectConfiguration();
+                    options.RequireHttpsMetadata = false;
                 });
 
             services.RegisterDependencies(Env, Configuration);

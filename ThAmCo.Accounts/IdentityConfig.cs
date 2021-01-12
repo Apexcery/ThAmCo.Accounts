@@ -58,6 +58,8 @@ namespace ThAmCo.Accounts
                     ClientName = "ThAmCo API Client",
                     AllowedGrantTypes = GrantTypes.ResourceOwnerPassword,
                     AccessTokenLifetime = (int) TimeSpan.FromDays(1).TotalSeconds,
+                    AllowOfflineAccess = true,
+                    AllowAccessTokensViaBrowser = true,
                     AlwaysSendClientClaims = true,
                     AlwaysIncludeUserClaimsInIdToken = true,
                     ClientSecrets =
@@ -70,7 +72,8 @@ namespace ThAmCo.Accounts
                         "thamco_api",
                         "roles",
                         StandardScopes.OpenId,
-                        StandardScopes.Profile
+                        StandardScopes.Profile,
+                        StandardScopes.OfflineAccess
                     }
                 }
             };

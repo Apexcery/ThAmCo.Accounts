@@ -21,7 +21,7 @@ namespace ThAmCo.Accounts.Controllers.API
         }
 
         [HttpGet("me")]
-        [Authorize]
+        [Authorize(AuthenticationSchemes = "Bearer")]
         public async Task<ActionResult> GetCurrentUser()
         {
             var identity = HttpContext.User.Identity;
