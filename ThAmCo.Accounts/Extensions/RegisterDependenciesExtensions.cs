@@ -49,7 +49,7 @@ namespace ThAmCo.Accounts.Extensions
             else
                 services.AddHttpClient<IProfileService, ProfileService>(options =>
                 {
-                    options.BaseAddress = new Uri(config["AppSettings:Endpoints:ProfilesEndpoint"]);
+                    options.BaseAddress = new Uri($"{config["AppSettings:Endpoints:ProfilesEndpoint"]}/api/profile/");
                 });
 
             return services;
@@ -62,7 +62,7 @@ namespace ThAmCo.Accounts.Extensions
             else
                 services.AddHttpClient<ISysLogsService, SysLogsService>(options =>
                 {
-                    options.BaseAddress = new Uri(config["AppSettings:Endpoints:SysLogsEndpoint"]);
+                    options.BaseAddress = new Uri($"{config["AppSettings:Endpoints:SysLogsEndpoint"]}/api/SysLogs/");
                 });
 
             return services;

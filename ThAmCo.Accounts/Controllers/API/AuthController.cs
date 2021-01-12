@@ -158,7 +158,11 @@ namespace ThAmCo.Accounts.Controllers.API
 
             var loginResponse = await response.Content.ReadAsAsync<AuthLoginResponse>();
 
-            var cookieOptions = new CookieOptions { Expires = DateTime.Now.AddSeconds(loginResponse.ExpiresInSeconds), Domain = $"{HttpContext.Request.Scheme}://{HttpContext.Request.Host.Value}" };
+            var domain = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") != null && Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Development" ?
+                                null :
+                                $"{HttpContext.Request.Scheme}://{HttpContext.Request.Host.Host}";
+
+            var cookieOptions = new CookieOptions { Expires = DateTime.Now.AddSeconds(loginResponse.ExpiresInSeconds), Domain = domain };
             Response.Cookies.Append("access_token", loginResponse.AccessToken, cookieOptions);
 
             return true;
