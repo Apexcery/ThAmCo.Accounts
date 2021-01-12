@@ -44,29 +44,39 @@ namespace ThAmCo.Accounts.Controllers.API
 
             var result = await LoginAndStoreCookie(loginInfo.Username, loginInfo.Password);
 
-            if (result)
+            if (!result)
             {
-                var user = await _userManager.FindByNameAsync(loginInfo.Username);
-                var roles = await _userManager.GetRolesAsync(user);
-                var highestRole =
-                    roles.Contains("Admin") ? "Admin" :
-                    roles.Contains("Staff") ? "Staff" :
-                    roles.Contains("Customer") ? "Customer" : "N/A";
-
                 await _sysLogsService.AddLog(new SysLogDto
                 {
-                    Id = Guid.Parse(user.Id),
-                    Role = highestRole,
-                    AlertType = AlertTypeEnum.INFO,
+                    Id = Guid.NewGuid(),
+                    Role = "Customer",
+                    AlertType = AlertTypeEnum.WARNING,
                     ComponentName = "accounts",
                     Date = DateTime.UtcNow,
-                    Details = $"User: '{user.UserName}' has logged in."
+                    Details = $"User: '{loginInfo.Username}' has failed to logged in."
                 });
 
-                return RedirectToAction("Index", "Home");
+                return RedirectToAction("Index", "Auth");
             }
 
-            return RedirectToAction("Index", "Auth");
+            var user = await _userManager.FindByNameAsync(loginInfo.Username);
+            var roles = await _userManager.GetRolesAsync(user);
+            var highestRole =
+                roles.Contains("Admin") ? "Admin" :
+                roles.Contains("Staff") ? "Staff" :
+                roles.Contains("Customer") ? "Customer" : "N/A";
+
+            await _sysLogsService.AddLog(new SysLogDto
+            {
+                Id = Guid.Parse(user.Id),
+                Role = highestRole,
+                AlertType = AlertTypeEnum.INFO,
+                ComponentName = "accounts",
+                Date = DateTime.UtcNow,
+                Details = $"User: '{user.UserName}' has logged in."
+            });
+
+            return RedirectToAction("Index", "Home");
         }
 
         [AllowAnonymous]
