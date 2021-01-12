@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 using ThAmCo.Accounts.Interfaces;
 using ThAmCo.Accounts.Models.Profile;
 
-namespace ThAmCo.Accounts.Services
+namespace ThAmCo.Accounts.Services.Profile
 {
     public class ProfileService : IProfileService
     {

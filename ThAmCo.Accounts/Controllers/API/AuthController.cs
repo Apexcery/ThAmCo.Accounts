@@ -8,11 +8,14 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
 using ThAmCo.Accounts.Data.Account;
+using ThAmCo.Accounts.Enums;
 using ThAmCo.Accounts.Interfaces;
 using ThAmCo.Accounts.Models;
 using ThAmCo.Accounts.Models.Auth;
 using ThAmCo.Accounts.Models.Profile;
+using ThAmCo.Accounts.Models.SysLogs;
 
 namespace ThAmCo.Accounts.Controllers.API
 {
@@ -23,11 +26,13 @@ namespace ThAmCo.Accounts.Controllers.API
     {
         private readonly UserManager<AppUser> _userManager;
         private readonly IProfileService _profileService;
+        private readonly ISysLogsService _sysLogsService;
 
-        public AuthController(UserManager<AppUser> userManager, IProfileService profileService)
+        public AuthController(UserManager<AppUser> userManager, IProfileService profileService, ISysLogsService sysLogsService)
         {
             _userManager = userManager;
             _profileService = profileService;
+            _sysLogsService = sysLogsService;
         }
 
         [AllowAnonymous]
@@ -37,7 +42,31 @@ namespace ThAmCo.Accounts.Controllers.API
             if (!ModelState.IsValid)
                 return BadRequest();
 
-            return await LoginAndStoreCookie(loginInfo.Username, loginInfo.Password);
+            var result = await LoginAndStoreCookie(loginInfo.Username, loginInfo.Password);
+
+            if (result)
+            {
+                var user = await _userManager.FindByNameAsync(loginInfo.Username);
+                var roles = await _userManager.GetRolesAsync(user);
+                var highestRole =
+                    roles.Contains("Admin") ? "Admin" :
+                    roles.Contains("Staff") ? "Staff" :
+                    roles.Contains("Customer") ? "Customer" : "N/A";
+
+                await _sysLogsService.AddLog(new SysLogDto
+                {
+                    Id = Guid.Parse(user.Id),
+                    Role = highestRole,
+                    AlertType = AlertTypeEnum.INFO,
+                    ComponentName = "accounts",
+                    Date = DateTime.UtcNow,
+                    Details = $"User: '{user.UserName}' has logged in."
+                });
+
+                return RedirectToAction("Index", "Home");
+            }
+
+            return RedirectToAction("Index", "Auth");
         }
 
         [AllowAnonymous]
@@ -73,10 +102,31 @@ namespace ThAmCo.Accounts.Controllers.API
                 Surname = user.Surname
             });
 
-            return await LoginAndStoreCookie(newUser.Username, newUser.Password);
+            var loginResult = await LoginAndStoreCookie(newUser.Username, newUser.Password);
+            if (loginResult)
+            {
+                var highestRole =
+                    roles.Contains("Admin") ? "Admin" :
+                    roles.Contains("Staff") ? "Staff" :
+                    roles.Contains("Customer") ? "Customer" : "N/A";
+
+                await _sysLogsService.AddLog(new SysLogDto
+                {
+                    Id = Guid.Parse(user.Id),
+                    Role = highestRole,
+                    AlertType = AlertTypeEnum.INFO,
+                    ComponentName = "accounts",
+                    Date = DateTime.UtcNow,
+                    Details = $"User: '{user.UserName}' has registered."
+                });
+
+                return RedirectToAction("Index", "Home");
+            }
+
+            return RedirectToAction("Index", "Auth");
         }
 
-        private async Task<IActionResult> LoginAndStoreCookie(string username, string password)
+        private async Task<bool> LoginAndStoreCookie(string username, string password)
         {
             var baseUrl = $"{HttpContext.Request.Scheme}://{HttpContext.Request.Host.Value}";
             var tokenUrl = "/connect/token";
@@ -104,14 +154,14 @@ namespace ThAmCo.Accounts.Controllers.API
             var response = await client.PostAsync(tokenUrl, content);
 
             if (!response.IsSuccessStatusCode)
-                return RedirectToAction("Index", "Auth");
+                return false;
 
             var loginResponse = await response.Content.ReadAsAsync<AuthLoginResponse>();
 
             var cookieOptions = new CookieOptions { Expires = DateTime.Now.AddSeconds(loginResponse.ExpiresInSeconds) };
             Response.Cookies.Append("access_token", loginResponse.AccessToken, cookieOptions);
 
-            return RedirectToAction("Index", "Home");
+            return true;
         }
 
         [HttpGet("claims")]

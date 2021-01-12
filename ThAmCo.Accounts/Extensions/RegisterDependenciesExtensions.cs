@@ -12,6 +12,8 @@ using ThAmCo.Accounts.Interfaces;
 using ThAmCo.Accounts.Mapper;
 using ThAmCo.Accounts.Repositories;
 using ThAmCo.Accounts.Services;
+using ThAmCo.Accounts.Services.Profile;
+using ThAmCo.Accounts.Services.SysLogs;
 
 namespace ThAmCo.Accounts.Extensions
 {
@@ -22,6 +24,8 @@ namespace ThAmCo.Accounts.Extensions
             services.RegisterAccounts(env);
 
             services.RegisterProfiles(env, config);
+
+            services.RegisterSysLogs(env, config);
 
             services.RegisterMapper();
 
@@ -46,6 +50,19 @@ namespace ThAmCo.Accounts.Extensions
                 services.AddHttpClient<IProfileService, ProfileService>(options =>
                 {
                     options.BaseAddress = new Uri(config["AppSettings:Endpoints:ProfilesEndpoint"]);
+                });
+
+            return services;
+        }
+
+        private static IServiceCollection RegisterSysLogs(this IServiceCollection services, IWebHostEnvironment env, IConfiguration config)
+        {
+            if (env.IsDevelopment())
+                services.AddSingleton<ISysLogsService, MockSysLogsService>();
+            else
+                services.AddHttpClient<ISysLogsService, SysLogsService>(options =>
+                {
+                    options.BaseAddress = new Uri(config["AppSettings:Endpoints:SysLogsEndpoint"]);
                 });
 
             return services;
