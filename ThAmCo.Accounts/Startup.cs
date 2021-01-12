@@ -69,8 +69,8 @@ namespace ThAmCo.Accounts
 
             JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear();
 
-            services.AddAuthentication("Bearer")
-                .AddJwtBearer("Bearer", options =>
+            services.AddAuthentication("thamco_api")
+                .AddJwtBearer("thamco_api", options =>
                 {
                     options.Audience = "thamco_api";
                     options.Authority = "zenithal.co.uk";
