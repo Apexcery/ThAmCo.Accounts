@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
+using IdentityServer4.Extensions;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using ThAmCo.Accounts.Enums;
@@ -16,6 +18,17 @@ namespace ThAmCo.Accounts.Controllers.API
         public AccountController(IAccountsRepository accountsRepository)
         {
             _accountsRepository = accountsRepository;
+        }
+
+        [HttpGet("me")]
+        [Authorize]
+        public async Task<ActionResult> GetCurrentUser()
+        {
+            var identity = HttpContext.User.Identity;
+            if (identity != null)
+                return Ok(identity.GetSubjectId());
+
+            return BadRequest("Couldn't retrieve account details.");
         }
 
         [HttpGet("accounts")]
